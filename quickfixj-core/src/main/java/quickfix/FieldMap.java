@@ -342,6 +342,20 @@ public abstract class FieldMap implements Serializable, Iterable<Field<?>> {
         fields.put(field.getField(), field);
     }
 
+
+    public void setField(StringField field, boolean duplicateTagsAllowed) {
+        if (field.getValue() == null) {
+            throw new NullPointerException("Null field values are not allowed.");
+        }
+        if(!duplicateTagsAllowed){
+            Field old =  fields.get(field.getField());
+            if(old != null){
+                throw new FieldException(SessionRejectReason.TAG_APPEARS_MORE_THAN_ONCE, field.getTag());
+            }
+        }
+        fields.put(field.getField(), field);
+    }
+
     public void setField(BooleanField field) {
         setBoolean(field.getField(), field.getValue());
     }
