@@ -385,6 +385,13 @@ public class Session implements Closeable {
      */
     public static final String SETTING_ALLOW_POS_DUP_MESSAGES = "AllowPosDup";
 
+
+    /**
+     * Default is "Y".
+     * If set to N, messages which contain values not presented in the range will not be rejected.
+     */
+    public static final String SETTING_VALIDATE_FIELDS_OUT_OF_RANGE = "ValidateFieldsOutOfRange";
+
     private static final ConcurrentMap<SessionID, Session> sessions = new ConcurrentHashMap<>();
 
     private final Application application;
@@ -436,6 +443,7 @@ public class Session implements Closeable {
     private boolean enableLastMsgSeqNumProcessed = false;
     private boolean validateChecksum = true;
     private boolean allowPosDup = false;
+    private boolean validateFieldsOutOfRange = true;
 
     private int maxScheduledWriteRequests = 0;
 
@@ -477,7 +485,7 @@ public class Session implements Closeable {
              messageFactory, heartbeatInterval, true, DEFAULT_MAX_LATENCY, UtcTimestampPrecision.MILLIS, false, false,
              false, false, true, false, true, false, DEFAULT_TEST_REQUEST_DELAY_MULTIPLIER, null, true, new int[] {5},
              false, false, false, false, true, false, true, false, null, true, DEFAULT_RESEND_RANGE_CHUNK_SIZE, false,
-             false, false, new ArrayList<StringField>(), DEFAULT_HEARTBEAT_TIMEOUT_MULTIPLIER, false);
+             false, false, new ArrayList<StringField>(), DEFAULT_HEARTBEAT_TIMEOUT_MULTIPLIER, false, true);
     }
 
     Session(Application application, MessageStoreFactory messageStoreFactory, SessionID sessionID,
@@ -496,7 +504,7 @@ public class Session implements Closeable {
             boolean validateIncomingMessage, int resendRequestChunkSize,
             boolean enableNextExpectedMsgSeqNum, boolean enableLastMsgSeqNumProcessed,
             boolean validateChecksum, List<StringField> logonTags, double heartBeatTimeoutMultiplier,
-            boolean allowPossDup) {
+            boolean allowPossDup, boolean validateFieldsOutOfRange) {
         this.application = application;
         this.sessionID = sessionID;
         this.sessionSchedule = sessionSchedule;
@@ -532,6 +540,7 @@ public class Session implements Closeable {
         this.validateChecksum = validateChecksum;
         this.logonTags = logonTags;
         this.allowPosDup = allowPossDup;
+        this.validateFieldsOutOfRange = validateFieldsOutOfRange;
 
         final Log engineLog = (logFactory != null) ? logFactory.create(sessionID) : null;
         if (engineLog instanceof SessionStateListener) {
@@ -1025,10 +1034,10 @@ public class Session implements Closeable {
 
                 // related to QFJ-367 : just warn invalid incoming field/tags
                 try {
-                    DataDictionary.validate(message, sessionDataDictionary,
+                    DataDictionary.validate(message, sessionDataDictionary,//todo
                             applicationDataDictionary);
                 } catch (final IncorrectTagValue e) {
-                    if (rejectInvalidMessage) {
+                    if (rejectInvalidMessage && validateFieldsOutOfRange) {
                         throw e;
                     } else {
                         getLog().onErrorEvent("Warn: incoming message with " + e + ": " + getMessageToLog(message));
@@ -3087,4 +3096,11 @@ public class Session implements Closeable {
         stateListener.onRefresh(sessionID);
     }
 
+    public boolean isValidateFieldsOutOfRange() {
+        return validateFieldsOutOfRange;
+    }
+
+    public void setValidateFieldsOutOfRange(boolean validateFieldsOutOfRange) {
+        this.validateFieldsOutOfRange = validateFieldsOutOfRange;
+    }
 }
