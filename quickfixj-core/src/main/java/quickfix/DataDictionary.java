@@ -93,6 +93,7 @@ public class DataDictionary {
     private boolean checkUserDefinedFields = true;
     private boolean checkUnorderedGroupFields = true;
     private boolean allowUnknownMessageFields = false;
+    private boolean checkRequiredTags = true;
     private String beginString;
     private String fullVersion;
     private String majorVersion;
@@ -130,12 +131,12 @@ public class DataDictionary {
     /**
      * Initialize a data dictionary from a URL or a file path.
      *
-     * @param location a URL or file system path
+     * @param location                       a URL or file system path
      * @param documentBuilderFactorySupplier custom document builder factory supplier
      * @throws ConfigError
      */
     public DataDictionary(String location, Supplier<DocumentBuilderFactory> documentBuilderFactorySupplier) throws
-                                                                                                            ConfigError {
+            ConfigError {
         read(location, documentBuilderFactorySupplier.get());
     }
 
@@ -152,7 +153,7 @@ public class DataDictionary {
     /**
      * Initialize a data dictionary from an input stream.
      *
-     * @param in the input stream
+     * @param in                             the input stream
      * @param documentBuilderFactorySupplier custom document builder factory supplier
      * @throws ConfigError
      */
@@ -177,6 +178,7 @@ public class DataDictionary {
     /**
      * Get the FIX major/minor version associated with this dictionary.
      * E.g. FIX.5.0
+     *
      * @return the FIX version
      */
     public String getVersion() {
@@ -190,6 +192,7 @@ public class DataDictionary {
     /**
      * Get the FIX major/minor/SP/EP version associated with this dictionary.
      * E.g. FIX.5.0.SP2_EP260
+     *
      * @return the full FIX version
      */
     public String getFullVersion() {
@@ -216,10 +219,10 @@ public class DataDictionary {
     public int getMinorVersion() {
         return minorVersion;
     }
-    
+
     /**
      * NOTE: this is of type String to cover the "Latest" case.
-     * 
+     *
      * @return the major FIX version
      */
     public String getMajorVersion() {
@@ -266,7 +269,7 @@ public class DataDictionary {
      * Get the value, if any, for an enumerated value name.
      *
      * @param field the tag
-     * @param name the value name
+     * @param name  the value name
      * @return the value assigned to passed name
      */
     public String getValue(int field, String name) {
@@ -326,7 +329,7 @@ public class DataDictionary {
      *
      * @param msgType the messageType
      * @return true, if the msgType is a AdminMessage
-     *         false, if the msgType is a ApplicationMessage
+     * false, if the msgType is a ApplicationMessage
      */
     public boolean isAdminMessage(String msgType) {
         // Categories are interned
@@ -338,7 +341,7 @@ public class DataDictionary {
      *
      * @param msgType the messageType
      * @return true, if the msgType is a ApplicationMessage
-     *         false, if the msgType is a AdminMessage
+     * false, if the msgType is a AdminMessage
      */
     public boolean isAppMessage(String msgType) {
         // Categories are interned
@@ -353,7 +356,7 @@ public class DataDictionary {
      * Predicate for determining if a field is valid for a given message type.
      *
      * @param msgType the message type
-     * @param field the tag
+     * @param field   the tag
      * @return true if field is defined for message, false otherwise.
      */
     public boolean isMsgField(String msgType, int field) {
@@ -404,7 +407,7 @@ public class DataDictionary {
      * Predicate for determining if a field is required for a message type
      *
      * @param msgType the message type
-     * @param field the tag
+     * @param field   the tag
      * @return true if field is required, false otherwise
      */
     public boolean isRequiredField(String msgType, int field) {
@@ -487,7 +490,7 @@ public class DataDictionary {
      * Predicate for determining if a field is a group count field for a message
      * type.
      *
-     * @param msg the message type
+     * @param msg   the message type
      * @param field the tag
      * @return true if field starts a repeating group, false otherwise
      */
@@ -508,7 +511,7 @@ public class DataDictionary {
     /**
      * Get repeating group metadata.
      *
-     * @param msg the message type
+     * @param msg   the message type
      * @param field the tag
      * @return an object containing group-related metadata
      */
@@ -529,7 +532,7 @@ public class DataDictionary {
     private boolean isMultipleValueStringField(int field) {
         final FieldType fieldType = fieldTypes.get(field);
         return fieldType == FieldType.MULTIPLEVALUESTRING || fieldType == FieldType.MULTIPLESTRINGVALUE ||
-               fieldType == FieldType.MULTIPLECHARVALUE;
+                fieldType == FieldType.MULTIPLECHARVALUE;
     }
 
     /**
@@ -559,6 +562,10 @@ public class DataDictionary {
 
     public boolean isAllowUnknownMessageFields() {
         return allowUnknownMessageFields;
+    }
+
+    public boolean isCheckRequiredTags() {
+        return checkRequiredTags;
     }
 
     /**
@@ -608,6 +615,15 @@ public class DataDictionary {
         for (Map<Integer, GroupInfo> gm : groups.values()) {
             for (GroupInfo gi : gm.values()) {
                 gi.getDataDictionary().setAllowUnknownMessageFields(allowUnknownFields);
+            }
+        }
+    }
+
+    public void setCheckRequiredTags(boolean checkRequiredTags) {
+        this.checkRequiredTags = checkRequiredTags;
+        for (Map<Integer, GroupInfo> gm : groups.values()) {
+            for (GroupInfo gi : gm.values()) {
+                gi.getDataDictionary().setCheckRequiredTags(checkRequiredTags);
             }
         }
     }
@@ -663,7 +679,8 @@ public class DataDictionary {
         }
     }
 
-    /** copy groups including their data dictionaries and validation settings
+    /**
+     * copy groups including their data dictionaries and validation settings
      *
      * @param lhs target
      * @param rhs source
@@ -688,8 +705,8 @@ public class DataDictionary {
      * Validate a message, including the header and trailer fields.
      *
      * @param message the message
-     * @throws IncorrectTagValue if a field value is not valid
-     * @throws FieldNotFound if a field cannot be found
+     * @throws IncorrectTagValue   if a field value is not valid
+     * @throws FieldNotFound       if a field cannot be found
      * @throws IncorrectDataFormat if a field value has a wrong data type
      */
     public void validate(Message message) throws IncorrectTagValue, FieldNotFound,
@@ -700,10 +717,10 @@ public class DataDictionary {
     /**
      * Validate the message body, with header and trailer fields being validated conditionally.
      *
-     * @param message the message
+     * @param message  the message
      * @param bodyOnly whether to validate just the message body, or to validate the header and trailer sections as well.
-     * @throws IncorrectTagValue if a field value is not valid
-     * @throws FieldNotFound if a field cannot be found
+     * @throws IncorrectTagValue   if a field value is not valid
+     * @throws FieldNotFound       if a field cannot be found
      * @throws IncorrectDataFormat if a field value has a wrong data type
      */
     public void validate(Message message, boolean bodyOnly) throws IncorrectTagValue,
@@ -712,13 +729,13 @@ public class DataDictionary {
     }
 
     static void validate(Message message, DataDictionary sessionDataDictionary,
-            DataDictionary applicationDataDictionary) throws IncorrectTagValue, FieldNotFound,
+                         DataDictionary applicationDataDictionary) throws IncorrectTagValue, FieldNotFound,
             IncorrectDataFormat {
         final boolean bodyOnly = sessionDataDictionary == null;
 
         if (isVersionSpecified(sessionDataDictionary)
                 && !sessionDataDictionary.getVersion().equals(
-                        message.getHeader().getString(BeginString.FIELD))
+                message.getHeader().getString(BeginString.FIELD))
                 && !message.getHeader().getString(BeginString.FIELD).equals("FIXT.1.1")
                 && !sessionDataDictionary.getVersion().equals("FIX.5.0")) {
             throw new UnsupportedVersion("Message version '" + message.getHeader().getString(BeginString.FIELD)
@@ -774,21 +791,27 @@ public class DataDictionary {
         }
     }
 
-    /** Check if message type is defined in spec. **/
+    /**
+     * Check if message type is defined in spec.
+     **/
     private void checkMsgType(String msgType) {
         if (!isMsgType(msgType)) {
             throw new FieldException(SessionRejectReason.INVALID_MSGTYPE, MsgType.FIELD);
         }
     }
 
-    /** Check if field tag number is defined in spec. **/
+    /**
+     * Check if field tag number is defined in spec.
+     **/
     void checkValidTagNumber(Field<?> field) {
         if (!fields.contains(field.getTag())) {
             throw new FieldException(SessionRejectReason.INVALID_TAG_NUMBER, field.getField());
         }
     }
 
-    /** Check if field tag is defined for message or group **/
+    /**
+     * Check if field tag is defined for message or group
+     **/
     void checkField(Field<?> field, String msgType, boolean message) {
         // use different validation for groups and messages
         boolean messageField = message ? isMsgField(msgType, field.getField()) : fields.contains(field.getField());
@@ -882,7 +905,9 @@ public class DataDictionary {
         }
     }
 
-    /** Check if a field has a value. **/
+    /**
+     * Check if a field has a value.
+     **/
     private void checkHasValue(StringField field) {
         if (checkFieldsHaveValues && field.getValue().length() == 0) {
             throw new FieldException(SessionRejectReason.TAG_SPECIFIED_WITHOUT_A_VALUE,
@@ -890,7 +915,9 @@ public class DataDictionary {
         }
     }
 
-    /** Check if group count matches number of groups in **/
+    /**
+     * Check if group count matches number of groups in
+     **/
     private void checkGroupCount(StringField field, FieldMap fieldMap, String msgType) {
         final int fieldNum = field.getField();
         if (isGroup(msgType, fieldNum)) {
@@ -902,15 +929,20 @@ public class DataDictionary {
         }
     }
 
-    /** Check if a message has all required fields. **/
+    /**
+     * Check if a message has all required fields.
+     **/
     void checkHasRequired(FieldMap header, FieldMap body, FieldMap trailer, String msgType,
-            boolean bodyOnly) {
-        if (!bodyOnly) {
-            checkHasRequired(HEADER_ID, header, bodyOnly);
-            checkHasRequired(TRAILER_ID, trailer, bodyOnly);
-        }
+                          boolean bodyOnly) {
 
-        checkHasRequired(msgType, body, bodyOnly);
+        if (isCheckRequiredTags()) {
+            if (!bodyOnly) {
+                checkHasRequired(HEADER_ID, header, bodyOnly);
+                checkHasRequired(TRAILER_ID, trailer, bodyOnly);
+            }
+
+            checkHasRequired(msgType, body, bodyOnly);
+        }
     }
 
     private void checkHasRequired(String msgType, FieldMap fields, boolean bodyOnly) {
@@ -1018,7 +1050,7 @@ public class DataDictionary {
             }
             setFullVersion(fullVersion);
         }
-        
+
         // Index Components
         final NodeList componentsNode = documentElement.getElementsByTagName("components");
         if (componentsNode.getLength() > 0) {
@@ -1246,7 +1278,7 @@ public class DataDictionary {
     }
 
     private int addXMLComponentFields(Document document, Node node, String msgtype,
-            DataDictionary dd, boolean componentRequired) throws ConfigError {
+                                      DataDictionary dd, boolean componentRequired) throws ConfigError {
         int firstField = 0;
 
         String name = getAttribute(node, "name");
@@ -1299,7 +1331,7 @@ public class DataDictionary {
     }
 
     private void addXMLGroup(Document document, Node node, String msgtype, DataDictionary dd,
-            boolean groupRequired) throws ConfigError {
+                             boolean groupRequired) throws ConfigError {
         final String name = getAttribute(node, "name");
         if (name == null) {
             throw new ConfigError("No name given to group");
@@ -1436,8 +1468,8 @@ public class DataDictionary {
         public boolean equals(Object other) {
             return this == other
                     || other instanceof GroupInfo
-                       && delimiterField == ((GroupInfo) other).delimiterField
-                       && dataDictionary.equals(((GroupInfo) other).dataDictionary);
+                    && delimiterField == ((GroupInfo) other).delimiterField
+                    && dataDictionary.equals(((GroupInfo) other).dataDictionary);
         }
 
         @Override

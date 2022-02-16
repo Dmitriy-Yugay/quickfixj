@@ -112,6 +112,7 @@ public class SessionFactoryTestSupport implements SessionFactory {
         private final boolean enableLastMsgSeqNumProcessed = false;
         private final boolean validateChecksum = true;
         private final boolean allowPosDup = false;
+        private final boolean checkRequiredTags = false;
         private List<StringField> logonTags = new ArrayList<>();
 
         public Session build() {
@@ -124,7 +125,7 @@ public class SessionFactoryTestSupport implements SessionFactory {
                     resetOnError, disconnectOnError, disableHeartBeatCheck, false, rejectInvalidMessage,
                     rejectMessageOnUnhandledException, requiresOrigSendingTime, forceResendWhenCorruptedStore,
                     allowedRemoteAddresses, validateIncomingMessage, resendRequestChunkSize, enableNextExpectedMsgSeqNum,
-                    enableLastMsgSeqNumProcessed, validateChecksum, logonTags, heartBeatTimeoutMultiplier, allowPosDup);
+                    enableLastMsgSeqNumProcessed, validateChecksum, logonTags, heartBeatTimeoutMultiplier, allowPosDup, checkRequiredTags);
         }
 
         public Builder setBeginString(final String beginString) {

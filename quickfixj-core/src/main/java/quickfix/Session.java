@@ -385,6 +385,11 @@ public class Session implements Closeable {
      */
     public static final String SETTING_ALLOW_POS_DUP_MESSAGES = "AllowPosDup";
 
+    /**
+     * Option so that the session does not remove PossDupFlag (43) and OrigSendingTime (122) information when sending.
+     */
+    public static final String SETTING_CHECK_REQUIRED_TAGS = "CheckRequiredTags";
+
     private static final ConcurrentMap<SessionID, Session> sessions = new ConcurrentHashMap<>();
 
     private final Application application;
@@ -436,6 +441,7 @@ public class Session implements Closeable {
     private boolean enableLastMsgSeqNumProcessed = false;
     private boolean validateChecksum = true;
     private boolean allowPosDup = false;
+    private boolean checkRequiredTags = true;
 
     private int maxScheduledWriteRequests = 0;
 
@@ -477,7 +483,7 @@ public class Session implements Closeable {
              messageFactory, heartbeatInterval, true, DEFAULT_MAX_LATENCY, UtcTimestampPrecision.MILLIS, false, false,
              false, false, true, false, true, false, DEFAULT_TEST_REQUEST_DELAY_MULTIPLIER, null, true, new int[] {5},
              false, false, false, false, true, false, true, false, null, true, DEFAULT_RESEND_RANGE_CHUNK_SIZE, false,
-             false, false, new ArrayList<StringField>(), DEFAULT_HEARTBEAT_TIMEOUT_MULTIPLIER, false);
+             false, false, new ArrayList<StringField>(), DEFAULT_HEARTBEAT_TIMEOUT_MULTIPLIER, false, true);
     }
 
     Session(Application application, MessageStoreFactory messageStoreFactory, SessionID sessionID,
@@ -496,7 +502,7 @@ public class Session implements Closeable {
             boolean validateIncomingMessage, int resendRequestChunkSize,
             boolean enableNextExpectedMsgSeqNum, boolean enableLastMsgSeqNumProcessed,
             boolean validateChecksum, List<StringField> logonTags, double heartBeatTimeoutMultiplier,
-            boolean allowPossDup) {
+            boolean allowPossDup, boolean checkRequiredTags) {
         this.application = application;
         this.sessionID = sessionID;
         this.sessionSchedule = sessionSchedule;
@@ -532,6 +538,7 @@ public class Session implements Closeable {
         this.validateChecksum = validateChecksum;
         this.logonTags = logonTags;
         this.allowPosDup = allowPossDup;
+        this.checkRequiredTags = checkRequiredTags;
 
         final Log engineLog = (logFactory != null) ? logFactory.create(sessionID) : null;
         if (engineLog instanceof SessionStateListener) {
@@ -3039,6 +3046,14 @@ public class Session implements Closeable {
 
     public void setAllowPosDup(boolean allowPosDup) {
         this.allowPosDup = allowPosDup;
+    }
+
+    public boolean isCheckRequiredTags() {
+        return checkRequiredTags;
+    }
+
+    public void setCheckRequiredTags(boolean checkRequiredTags) {
+        this.checkRequiredTags = checkRequiredTags;
     }
 
     /**
