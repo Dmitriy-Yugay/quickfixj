@@ -79,7 +79,7 @@ public class SessionID implements Serializable {
     }
 
     public SessionID(BeginString beginString, SenderCompID senderCompID, SenderSubID senderSubID,
-            TargetCompID targetCompID, TargetSubID targetSubID) {
+                     TargetCompID targetCompID, TargetSubID targetSubID) {
         this(value(beginString), value(senderCompID), value(senderSubID), value(targetCompID),
                 value(targetSubID));
     }
@@ -89,7 +89,7 @@ public class SessionID implements Serializable {
     }
 
     public SessionID(BeginString beginString, SenderCompID senderCompID, TargetCompID targetCompID,
-            String qualifier) {
+                     String qualifier) {
         this(value(beginString), value(senderCompID), value(targetCompID), value(qualifier));
     }
 
@@ -163,7 +163,7 @@ public class SessionID implements Serializable {
     @Override
     public boolean equals(Object object) {
         if (!(object instanceof SessionID)) {
-	    return false;
+            return false;
         }
         return toString().equals(object.toString());
     }
@@ -189,7 +189,7 @@ public class SessionID implements Serializable {
                 + (isSet(targetSubID) ? "/" + targetSubID : "")
                 + (isSet(targetLocationID) ? "/" + targetLocationID : "")
                 + (sessionQualifier != null && !sessionQualifier.equals(NOT_SET) ? ":"
-                        + sessionQualifier : NOT_SET);
+                + sessionQualifier : NOT_SET);
     }
 
     private boolean isSet(String value) {
