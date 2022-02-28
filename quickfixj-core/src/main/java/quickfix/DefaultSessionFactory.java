@@ -215,6 +215,8 @@ public class DefaultSessionFactory implements SessionFactory {
             final int resendRequestChunkSize = getSetting(settings, sessionID, Session.SETTING_RESEND_REQUEST_CHUNK_SIZE, Session.DEFAULT_RESEND_RANGE_CHUNK_SIZE);
             final boolean allowPossDup = getSetting(settings, sessionID, Session.SETTING_ALLOW_POS_DUP_MESSAGES, false);
             final boolean validateFieldsOutOfRange = getSetting(settings, sessionID, Session.SETTING_VALIDATE_FIELDS_OUT_OF_RANGE, true);
+            final boolean checkRequiredTags = getSetting(settings, sessionID, Session.SETTING_CHECK_REQUIRED_TAGS, true);
+
             final int[] logonIntervals = getLogonIntervalsInSeconds(settings, sessionID);
             final Set<InetAddress> allowedRemoteAddresses = getInetAddresses(settings, sessionID);
 
@@ -232,7 +234,8 @@ public class DefaultSessionFactory implements SessionFactory {
                     rejectInvalidMessage, rejectMessageOnUnhandledException, requiresOrigSendingTime,
                     forceResendWhenCorruptedStore, allowedRemoteAddresses, validateIncomingMessage,
                     resendRequestChunkSize, enableNextExpectedMsgSeqNum, enableLastMsgSeqNumProcessed,
-                    validateChecksum, logonTags, heartBeatTimeoutMultiplier, allowPossDup, validateFieldsOutOfRange);
+                    validateChecksum, logonTags, heartBeatTimeoutMultiplier, allowPossDup, validateFieldsOutOfRange,
+                    checkRequiredTags);
 
             session.setLogonTimeout(logonTimeout);
             session.setLogoutTimeout(logoutTimeout);
@@ -293,6 +296,11 @@ public class DefaultSessionFactory implements SessionFactory {
         if (settings.isSetting(sessionID, Session.SETTING_ALLOW_UNKNOWN_MSG_FIELDS)) {
             dataDictionary.setAllowUnknownMessageFields(settings.getBool(sessionID,
                     Session.SETTING_ALLOW_UNKNOWN_MSG_FIELDS));
+        }
+
+        if (settings.isSetting(sessionID, Session.SETTING_CHECK_REQUIRED_TAGS)) {
+            dataDictionary.setCheckRequiredTags(settings.getBool(sessionID,
+                    Session.SETTING_CHECK_REQUIRED_TAGS));
         }
 
         return dataDictionary;

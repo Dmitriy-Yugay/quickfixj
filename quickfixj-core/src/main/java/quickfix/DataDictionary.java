@@ -93,6 +93,7 @@ public class DataDictionary {
     private boolean checkUserDefinedFields = true;
     private boolean checkUnorderedGroupFields = true;
     private boolean allowUnknownMessageFields = false;
+    private boolean checkRequiredTags = true;
     private String beginString;
     private String fullVersion;
     private String majorVersion;
@@ -216,10 +217,10 @@ public class DataDictionary {
     public int getMinorVersion() {
         return minorVersion;
     }
-    
+
     /**
      * NOTE: this is of type String to cover the "Latest" case.
-     * 
+     *
      * @return the major FIX version
      */
     public String getMajorVersion() {
@@ -561,6 +562,10 @@ public class DataDictionary {
         return allowUnknownMessageFields;
     }
 
+    public boolean isCheckRequiredTags() {
+        return checkRequiredTags;
+    }
+
     /**
      * Controls whether group fields are in the same order
      *
@@ -608,6 +613,15 @@ public class DataDictionary {
         for (Map<Integer, GroupInfo> gm : groups.values()) {
             for (GroupInfo gi : gm.values()) {
                 gi.getDataDictionary().setAllowUnknownMessageFields(allowUnknownFields);
+            }
+        }
+    }
+
+    public void setCheckRequiredTags(boolean checkRequiredTags) {
+        this.checkRequiredTags = checkRequiredTags;
+        for (Map<Integer, GroupInfo> gm : groups.values()) {
+            for (GroupInfo gi : gm.values()) {
+                gi.getDataDictionary().setCheckRequiredTags(checkRequiredTags);
             }
         }
     }
@@ -904,13 +918,16 @@ public class DataDictionary {
 
     /** Check if a message has all required fields. **/
     void checkHasRequired(FieldMap header, FieldMap body, FieldMap trailer, String msgType,
-            boolean bodyOnly) {
-        if (!bodyOnly) {
-            checkHasRequired(HEADER_ID, header, bodyOnly);
-            checkHasRequired(TRAILER_ID, trailer, bodyOnly);
-        }
+                          boolean bodyOnly) {
 
-        checkHasRequired(msgType, body, bodyOnly);
+        if (isCheckRequiredTags()) {
+            if (!bodyOnly) {
+                checkHasRequired(HEADER_ID, header, bodyOnly);
+                checkHasRequired(TRAILER_ID, trailer, bodyOnly);
+            }
+
+            checkHasRequired(msgType, body, bodyOnly);
+        }
     }
 
     private void checkHasRequired(String msgType, FieldMap fields, boolean bodyOnly) {
@@ -1018,7 +1035,7 @@ public class DataDictionary {
             }
             setFullVersion(fullVersion);
         }
-        
+
         // Index Components
         final NodeList componentsNode = documentElement.getElementsByTagName("components");
         if (componentsNode.getLength() > 0) {
