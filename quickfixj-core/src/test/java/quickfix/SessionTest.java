@@ -102,7 +102,7 @@ public class SessionTest {
                 false, false, false, false, true, false, 1.5, null, true,
                 new int[]{5}, false, false, false, false, true, false, true, false,
                 null, true, 0, false, false, true, new ArrayList<>(), Session.DEFAULT_HEARTBEAT_TIMEOUT_MULTIPLIER,
-                false, true, true, false)) {
+                false, true, true, false, false)) {
             // Simulate socket disconnect
             session.setResponder(null);
         }
@@ -143,7 +143,7 @@ public class SessionTest {
                 false, false, false, false, true, false, 1.5, null, true,
                 new int[]{5}, false, false, false, false, true, false, true, false,
                 null, true, 0, false, false, true, new ArrayList<>(), Session.DEFAULT_HEARTBEAT_TIMEOUT_MULTIPLIER, false,
-                true, true, false)) {
+                true, true, false, false)) {
             // Simulate socket disconnect
             session.setResponder(null);
 
@@ -2105,7 +2105,7 @@ public class SessionTest {
                 false, 1.5, null, validateSequenceNumbers, new int[]{5},
                 false, false, false, false, true, false, true, false, null, true,
                 chunkSize, false, false, true, new ArrayList<>(), Session.DEFAULT_HEARTBEAT_TIMEOUT_MULTIPLIER,
-                false, false, true, false)) {
+                false, false, true, false, false)) {
 
             UnitTestResponder responder = new UnitTestResponder();
             session.setResponder(responder);
@@ -2167,7 +2167,7 @@ public class SessionTest {
                 new DefaultMessageFactory(), 30, false, 30, UtcTimestampPrecision.MILLIS, resetOnLogon,
                 false, false, false, false, false, true, false, 1.5, null, validateSequenceNumbers,
                 new int[]{5}, false, false, false, false, true, false, true, false, null, true, 0,
-                false, false, true, new ArrayList<>(), Session.DEFAULT_HEARTBEAT_TIMEOUT_MULTIPLIER, false, true, true, false);
+                false, false, true, new ArrayList<>(), Session.DEFAULT_HEARTBEAT_TIMEOUT_MULTIPLIER, false, true, true, false, false);
 
         Responder mockResponder = mock(Responder.class);
         when(mockResponder.send(anyString())).thenReturn(true);
@@ -2216,7 +2216,7 @@ public class SessionTest {
                 false, false, false, false, false, true, false, 1.5, null, validateSequenceNumbers,
                 new int[]{5}, false, false, false, false, true, false, true, false, null, true, 0,
                 enableNextExpectedMsgSeqNum, false, true, new ArrayList<>(), Session.DEFAULT_HEARTBEAT_TIMEOUT_MULTIPLIER,
-                false, true, true, false);
+                false, true, true, false, false);
 
         Responder mockResponder = mock(Responder.class);
         when(mockResponder.send(anyString())).thenReturn(true);
@@ -2266,7 +2266,7 @@ public class SessionTest {
                 false, 1.5, null, validateSequenceNumbers, new int[]{5},
                 false, disconnectOnError, false, false, true, false, true, false,
                 null, true, 0, false, false, true, new ArrayList<>(), Session.DEFAULT_HEARTBEAT_TIMEOUT_MULTIPLIER,
-                false, true, true, false)) {
+                false, true, true, false, false)) {
 
             UnitTestResponder responder = new UnitTestResponder();
             session.setResponder(responder);
@@ -2303,7 +2303,7 @@ public class SessionTest {
                 false, 1.5, null, validateSequenceNumbers, new int[]{5},
                 false, disconnectOnError, false, false, true, false, true, false,
                 null, true, 0, false, false, true, new ArrayList<>(), Session.DEFAULT_HEARTBEAT_TIMEOUT_MULTIPLIER,
-                false, true, true, false)) {
+                false, true, true, false, false)) {
 
             UnitTestResponder responder = new UnitTestResponder();
             session.setResponder(responder);
@@ -2355,7 +2355,8 @@ public class SessionTest {
                 new DefaultMessageFactory(), isInitiator ? 30 : 0, false, 30, UtcTimestampPrecision.MILLIS, resetOnLogon,
                 false, false, false, false, false, true, false, 1.5, null, validateSequenceNumbers,
                 new int[]{5}, false, false, false, false, true, false, true, false, null, true, 0,
-                false, false, true, new ArrayList<>(), Session.DEFAULT_HEARTBEAT_TIMEOUT_MULTIPLIER, false, true, true, false);
+                false, false, true, new ArrayList<>(), Session.DEFAULT_HEARTBEAT_TIMEOUT_MULTIPLIER, false, true, true,
+                false, false);
 
         UnitTestResponder responder = new UnitTestResponder();
         session.setResponder(responder);
@@ -2471,7 +2472,8 @@ public class SessionTest {
                 new DefaultMessageFactory(), isInitiator ? 30 : 0, false, 30, UtcTimestampPrecision.MILLIS, resetOnLogon,
                 false, false, false, false, false, true, false, 1.5, null, validateSequenceNumbers,
                 new int[]{5}, false, false, false, false, true, false, true, false, null, true, 0,
-                enableNextExpectedMsgSeqNum, false, true, new ArrayList<>(), Session.DEFAULT_HEARTBEAT_TIMEOUT_MULTIPLIER, false, true, true, false);
+                enableNextExpectedMsgSeqNum, false, true, new ArrayList<>(), Session.DEFAULT_HEARTBEAT_TIMEOUT_MULTIPLIER,
+                false, true, true, false, false);
 
         UnitTestResponder responder = new UnitTestResponder();
         session.setResponder(responder);
@@ -2778,6 +2780,46 @@ public class SessionTest {
 
         String expectedMessage = "8=FIX.4.4\0019=75\00135=A\00134=1\00149=TARGET\00152=20220211-17:59:30.551\00156=SENDER\001369=177\00198=0\001108=30\00110=007\001";
         assertEquals(expectedMessage, application.lastFromAdminMessage().toString());
+    }
+
+        @Test
+    public void testIgnoreAbsenceOf141tag() throws Exception { //simulating situation in which seqNumReset is sent but not received. This usually results in session disconnection.
+        final SessionID sessionID = new SessionID(
+                FixVersions.BEGINSTRING_FIX44, "SENDER", "TARGET");
+
+        UnitTestApplication application = new UnitTestApplication();
+        final LogFactory mockLogFactory = mock(LogFactory.class);
+
+        final MessageStoreFactory mockMessageStoreFactory = mock(MessageStoreFactory.class);
+        final MessageStore mockMessageStore = mock(MessageStore.class);
+        when(mockMessageStoreFactory.create(sessionID)).thenReturn(mockMessageStore);
+        when(mockMessageStore.getNextSenderMsgSeqNum()).thenReturn(1);
+        when(mockMessageStore.getNextTargetMsgSeqNum()).thenReturn(1);
+
+        Session session = new Session(application,
+                mockMessageStoreFactory, sessionID, null, null, mockLogFactory,
+                new DefaultMessageFactory(), 30, false, 30, UtcTimestampPrecision.MILLIS, true, false,
+                false, false, false, false, true, false, 1.5, null, true,
+                new int[]{5}, false, false, false, false, true, false, true, false,
+                null, true, 0, false, false, true, new ArrayList<>(), Session.DEFAULT_HEARTBEAT_TIMEOUT_MULTIPLIER,
+                false, true, true, false, true);
+
+        UnitTestResponder responder = new UnitTestResponder();
+        session.setResponder(responder);
+
+        session.next();
+
+        Logon logonRequest = new Logon();
+        logonRequest.setField(new SenderCompID(sessionID.getTargetCompID()));
+        logonRequest.setField(new TargetCompID(sessionID.getSenderCompID()));
+        logonRequest.setField(new SendingTime(SystemTime.getLocalDateTime()));
+        logonRequest.getHeader().setField(new MsgSeqNum(2));
+        logonRequest.setInt(HeartBtInt.FIELD, 30);
+        session.next(logonRequest);
+
+        assertTrue(session.isLoggedOn());
+
+        session.close();
     }
 
     /**
@@ -3106,7 +3148,7 @@ public class SessionTest {
                 true, false, true, false,
                 null, true, 0, false,
                 false, true, new ArrayList<>(), Session.DEFAULT_HEARTBEAT_TIMEOUT_MULTIPLIER,
-                false, false, true, false);
+                false, false, true, false, false);
 
         session.setResponder(responder);
         Responder mockResponder = mock(Responder.class);

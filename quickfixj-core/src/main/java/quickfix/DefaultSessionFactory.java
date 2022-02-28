@@ -203,6 +203,9 @@ public class DefaultSessionFactory implements SessionFactory {
 
             final boolean duplicateTagsAllowed = getSetting(settings, sessionID, Session.DUPLICATE_TAGS_ALLOWED, true);
 
+            final boolean ignoreAbsenceOf141tag = getSetting(settings, sessionID,
+                    Session.IGNORE_ABSENCE_OF_141_TAG, false);
+
             final int logonTimeout = getSetting(settings, sessionID, Session.SETTING_LOGON_TIMEOUT, 10);
             final int logoutTimeout = getSetting(settings, sessionID, Session.SETTING_LOGOUT_TIMEOUT, 2);
 
@@ -237,7 +240,7 @@ public class DefaultSessionFactory implements SessionFactory {
                     forceResendWhenCorruptedStore, allowedRemoteAddresses, validateIncomingMessage,
                     resendRequestChunkSize, enableNextExpectedMsgSeqNum, enableLastMsgSeqNumProcessed,
                     validateChecksum, logonTags, heartBeatTimeoutMultiplier, allowPossDup, validateFieldsOutOfRange,
-                    checkRequiredTags, duplicateTagsAllowed);
+                    checkRequiredTags, duplicateTagsAllowed, ignoreAbsenceOf141tag);
 
             session.setLogonTimeout(logonTimeout);
             session.setLogoutTimeout(logoutTimeout);

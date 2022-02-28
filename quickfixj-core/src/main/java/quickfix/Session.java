@@ -402,6 +402,11 @@ public class Session implements Closeable {
      */
     public static final String DUPLICATE_TAGS_ALLOWED = "DuplicateTagsAllowed";
 
+    /**
+     * Ignore the absence of ResetSeqNumFlag(141) tag in the received Logon(A) message
+     */
+    public static final String IGNORE_ABSENCE_OF_141_TAG = "IgnoreAbsenceOf141tag";
+
     private static final ConcurrentMap<SessionID, Session> sessions = new ConcurrentHashMap<>();
 
     private final Application application;
@@ -456,6 +461,7 @@ public class Session implements Closeable {
     private boolean validateFieldsOutOfRange = true;
     private boolean checkRequiredTags = true;
     private boolean duplicateTagsAllowed = false;
+    private boolean ignoreAbsenceOf141tag = false;
 
     private int maxScheduledWriteRequests = 0;
 
@@ -497,7 +503,7 @@ public class Session implements Closeable {
              messageFactory, heartbeatInterval, true, DEFAULT_MAX_LATENCY, UtcTimestampPrecision.MILLIS, false, false,
              false, false, true, false, true, false, DEFAULT_TEST_REQUEST_DELAY_MULTIPLIER, null, true, new int[] {5},
              false, false, false, false, true, false, true, false, null, true, DEFAULT_RESEND_RANGE_CHUNK_SIZE, false,
-             false, false, new ArrayList<StringField>(), DEFAULT_HEARTBEAT_TIMEOUT_MULTIPLIER, false, true, true, false);
+             false, false, new ArrayList<StringField>(), DEFAULT_HEARTBEAT_TIMEOUT_MULTIPLIER, false, true, true, false, false);
     }
 
     Session(Application application, MessageStoreFactory messageStoreFactory, SessionID sessionID,
@@ -517,7 +523,7 @@ public class Session implements Closeable {
             boolean enableNextExpectedMsgSeqNum, boolean enableLastMsgSeqNumProcessed,
             boolean validateChecksum, List<StringField> logonTags, double heartBeatTimeoutMultiplier,
             boolean allowPossDup, boolean validateFieldsOutOfRange, boolean checkRequiredTags,
-            boolean duplicateTagsAllowed) {
+            boolean duplicateTagsAllowed, boolean ignoreAbsenceOf141tag) {
         this.application = application;
         this.sessionID = sessionID;
         this.sessionSchedule = sessionSchedule;
@@ -556,6 +562,7 @@ public class Session implements Closeable {
         this.validateFieldsOutOfRange = validateFieldsOutOfRange;
         this.checkRequiredTags = checkRequiredTags;
         this.duplicateTagsAllowed = duplicateTagsAllowed;
+        this.ignoreAbsenceOf141tag = ignoreAbsenceOf141tag;
 
         final Log engineLog = (logFactory != null) ? logFactory.create(sessionID) : null;
         if (engineLog instanceof SessionStateListener) {
@@ -2242,8 +2249,10 @@ public class Session implements Closeable {
         }
 
         // Check for proper sequence reset response
-        if (state.isResetSent() && !state.isResetReceived()) {
-            disconnect("Received logon response before sending request", true);
+        if(!ignoreAbsenceOf141tag) {
+            if (state.isResetSent() && !state.isResetReceived()) {
+                disconnect("Invalid sequence reset response in logon (missing 141=Y?): disconnecting", true);
+            }
         }
 
         state.setResetSent(false);
