@@ -2767,7 +2767,7 @@ public class SessionTest {
                 FixVersions.BEGINSTRING_FIX44, "SENDER", "TARGET");
         UnitTestApplication application = new UnitTestApplication();
         SessionSettings sessionSettings = SessionSettingsTest.setUpSession(null);
-        sessionSettings.setBool(Session.DUPLICATE_TAGS_ALLOWED, false);
+        sessionSettings.setBool(Session.SETTING_DUPLICATE_TAGS_ALLOWED, false);
         sessionSettings.setBool(Session.SETTING_CHECK_LATENCY, false);
 
         UnitTestResponder responder = new UnitTestResponder();

@@ -400,12 +400,12 @@ public class Session implements Closeable {
     /**
      * if set no reject will be sent on incoming message with duplicate tags
      */
-    public static final String DUPLICATE_TAGS_ALLOWED = "DuplicateTagsAllowed";
+    public static final String SETTING_DUPLICATE_TAGS_ALLOWED = "DuplicateTagsAllowed";
 
     /**
      * Ignore the absence of ResetSeqNumFlag(141) tag in the received Logon(A) message
      */
-    public static final String IGNORE_ABSENCE_OF_141_TAG = "IgnoreAbsenceOf141tag";
+    public static final String SETTING_IGNORE_ABSENCE_OF_141_TAG = "IgnoreAbsenceOf141tag";
 
     private static final ConcurrentMap<SessionID, Session> sessions = new ConcurrentHashMap<>();
 
