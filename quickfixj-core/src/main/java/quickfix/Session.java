@@ -1034,7 +1034,7 @@ public class Session implements Closeable {
 
                 // related to QFJ-367 : just warn invalid incoming field/tags
                 try {
-                    DataDictionary.validate(message, sessionDataDictionary,//todo
+                    DataDictionary.validate(message, sessionDataDictionary,
                             applicationDataDictionary);
                 } catch (final IncorrectTagValue e) {
                     if (rejectInvalidMessage && validateFieldsOutOfRange) {

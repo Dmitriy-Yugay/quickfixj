@@ -2100,7 +2100,7 @@ public class SessionTest {
                 new SLF4JLogFactory(new SessionSettings()),
                 new DefaultMessageFactory(), isInitiator ? 30 : 0, false, 30,
                 UtcTimestampPrecision.MILLIS, resetOnLogon, false, false, false, false, false, true,
-                false, 1.5, null, validateSequenceNumbers, new int[]{5},
+                false, 1.5, null, validateSequenceNumbers, new int[] { 5 },
                 false, false, false, false, true, false, true, false, null, true,
                 chunkSize, false, false, true, new ArrayList<>(), Session.DEFAULT_HEARTBEAT_TIMEOUT_MULTIPLIER, false, false)) {
 
@@ -2259,7 +2259,7 @@ public class SessionTest {
                 new SLF4JLogFactory(new SessionSettings()),
                 new DefaultMessageFactory(), isInitiator ? 30 : 0, false, 30,
                 UtcTimestampPrecision.MILLIS, resetOnLogon, false, false, false, false, false, true,
-                false, 1.5, null, validateSequenceNumbers, new int[]{5},
+                false, 1.5, null, validateSequenceNumbers, new int[] { 5 },
                 false, disconnectOnError, false, false, true, false, true, false,
                 null, true, 0, false, false, true, new ArrayList<>(), Session.DEFAULT_HEARTBEAT_TIMEOUT_MULTIPLIER, false, true)) {
 
@@ -2295,7 +2295,7 @@ public class SessionTest {
                 new SLF4JLogFactory(new SessionSettings()),
                 new DefaultMessageFactory(), isInitiator ? 30 : 0, false, 30,
                 UtcTimestampPrecision.NANOS, resetOnLogon, false, false, false, false, false, true,
-                false, 1.5, null, validateSequenceNumbers, new int[]{5},
+                false, 1.5, null, validateSequenceNumbers, new int[] { 5 },
                 false, disconnectOnError, false, false, true, false, true, false,
                 null, true, 0, false, false, true, new ArrayList<>(), Session.DEFAULT_HEARTBEAT_TIMEOUT_MULTIPLIER, false, true)) {
 
@@ -3047,7 +3047,7 @@ public class SessionTest {
     }
 
     @Test
-    public void testValidateFieldsOutOfRange() throws ConfigError, NoSuchFieldException, IllegalAccessException, InvalidMessage, RejectLogon, UnsupportedMessageType, IncorrectTagValue, FieldNotFound, IncorrectDataFormat, IOException {
+    public void testValidateFieldsOutOfRange() throws ConfigError, InvalidMessage, RejectLogon, UnsupportedMessageType, IncorrectTagValue, FieldNotFound, IncorrectDataFormat, IOException {
 
         final SessionID sessionID = new SessionID(
                 FixVersions.BEGINSTRING_FIX44, "SENDER", "TARGET");
@@ -3062,7 +3062,7 @@ public class SessionTest {
         when(mockLogFactory.create(sessionID)).thenReturn(mockLog);
 
         DataDictionaryProvider dataDictionaryProvider = mock(DataDictionaryProvider.class);
-        DataDictionary dataDictionary = new DataDictionary("../quickfixj-messages/quickfixj-messages-fix44/src/main/resources/FIX44.modified.xml");
+        DataDictionary dataDictionary = new DataDictionary("FIX44.modified.xml");
         when(dataDictionaryProvider.getSessionDataDictionary("FIX.4.4")).thenReturn(dataDictionary);
         when(dataDictionaryProvider.getApplicationDataDictionary(new ApplVerID("6"))).thenReturn(dataDictionary);
 
