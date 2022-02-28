@@ -598,7 +598,8 @@ public class Message extends FieldMap {
     }
 
     void parse(String messageData, DataDictionary sessionDataDictionary,
-               DataDictionary applicationDataDictionary, boolean doValidation, boolean validateChecksum) throws InvalidMessage {
+            DataDictionary applicationDataDictionary, boolean doValidation,
+            boolean validateChecksum) throws InvalidMessage {
         this.messageData = messageData;
         parse(messageData, sessionDataDictionary, applicationDataDictionary, doValidation, validateChecksum, null);
     }
@@ -606,18 +607,19 @@ public class Message extends FieldMap {
     void parse(String messageData, DataDictionary sessionDataDictionary,
             DataDictionary applicationDataDictionary, boolean doValidation,
             boolean validateChecksum, Boolean duplicateTagsAllowed) throws InvalidMessage {
+
         this.messageData = messageData;
         this.clear();
+
         try {
-            if( duplicateTagsAllowed == null){
-                parseHeader(sessionDataDictionary, doValidation, true);
-                parseBody(applicationDataDictionary, doValidation, false);
-                parseTrailer(sessionDataDictionary, true);
-            }else {
+            if( duplicateTagsAllowed != null){
                 parseHeader(sessionDataDictionary, doValidation, duplicateTagsAllowed);
                 parseBody(applicationDataDictionary, doValidation, duplicateTagsAllowed);
                 parseTrailer(sessionDataDictionary, duplicateTagsAllowed);
-
+            }else {
+                parseHeader(sessionDataDictionary, doValidation, true);
+                parseBody(applicationDataDictionary, doValidation, false);
+                parseTrailer(sessionDataDictionary, true);
             }
             if (doValidation && validateChecksum) {
                 validateCheckSum(messageData);

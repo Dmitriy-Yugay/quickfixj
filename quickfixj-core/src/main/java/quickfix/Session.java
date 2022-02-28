@@ -386,7 +386,7 @@ public class Session implements Closeable {
     public static final String SETTING_ALLOW_POS_DUP_MESSAGES = "AllowPosDup";
 
     /**
-     * if set no reject sent on incoming message with duplicate tags
+     * if set no reject will be sent on incoming message with duplicate tags
      */
     public static final String DUPLICATE_TAGS_ALLOWED = "DuplicateTagsAllowed";
 
