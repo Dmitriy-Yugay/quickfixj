@@ -201,6 +201,8 @@ public class DefaultSessionFactory implements SessionFactory {
             final boolean useClosedIntervalForResend = getSetting(settings, sessionID,
                     Session.SETTING_USE_CLOSED_RESEND_INTERVAL, false);
 
+            final boolean duplicateTagsAllowed = getSetting(settings, sessionID, Session.DUPLICATE_TAGS_ALLOWED, true);
+
             final int logonTimeout = getSetting(settings, sessionID, Session.SETTING_LOGON_TIMEOUT, 10);
             final int logoutTimeout = getSetting(settings, sessionID, Session.SETTING_LOGOUT_TIMEOUT, 2);
 
@@ -235,7 +237,7 @@ public class DefaultSessionFactory implements SessionFactory {
                     forceResendWhenCorruptedStore, allowedRemoteAddresses, validateIncomingMessage,
                     resendRequestChunkSize, enableNextExpectedMsgSeqNum, enableLastMsgSeqNumProcessed,
                     validateChecksum, logonTags, heartBeatTimeoutMultiplier, allowPossDup, validateFieldsOutOfRange,
-                    checkRequiredTags);
+                    checkRequiredTags, duplicateTagsAllowed);
 
             session.setLogonTimeout(logonTimeout);
             session.setLogoutTimeout(logoutTimeout);
