@@ -386,7 +386,7 @@ public class Session implements Closeable {
     public static final String SETTING_ALLOW_POS_DUP_MESSAGES = "AllowPosDup";
 
     /**
-     * Ignore if the tag ResetSeqNumFlag(141) is not available in the received Logon(A) message
+     * Ignore the absence of ResetSeqNumFlag(141) tag in the received Logon(A) message
      */
     public static final String IGNORE_ABSENCE_OF_141_TAG = "IgnoreAbsenceOf141tag";
 
@@ -2226,10 +2226,11 @@ public class Session implements Closeable {
         }
 
         // Check for proper sequence reset response
-        if(!ignoreAbsenceOf141tag)
+        if(!ignoreAbsenceOf141tag) {
             if (state.isResetSent() && !state.isResetReceived()) {
                 disconnect("Invalid sequence reset response in logon (missing 141=Y?): disconnecting", true);
             }
+        }
 
         state.setResetSent(false);
         state.setResetReceived(false);
