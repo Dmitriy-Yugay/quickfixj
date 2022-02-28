@@ -612,11 +612,11 @@ public class Message extends FieldMap {
         this.clear();
 
         try {
-            if( duplicateTagsAllowed != null){
+            if ( duplicateTagsAllowed != null) {
                 parseHeader(sessionDataDictionary, doValidation, duplicateTagsAllowed);
                 parseBody(applicationDataDictionary, doValidation, duplicateTagsAllowed);
                 parseTrailer(sessionDataDictionary, duplicateTagsAllowed);
-            }else {
+            } else {
                 parseHeader(sessionDataDictionary, doValidation, true);
                 parseBody(applicationDataDictionary, doValidation, false);
                 parseTrailer(sessionDataDictionary, true);
