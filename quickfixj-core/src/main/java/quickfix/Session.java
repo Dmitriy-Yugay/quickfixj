@@ -472,7 +472,6 @@ public class Session implements Closeable {
     private static final String BAD_ORIG_TIME_TEXT = new FieldException(BAD_TIME_REJ_REASON, OrigSendingTime.FIELD).getMessage();
     private static final String BAD_TIME_TEXT = new FieldException(BAD_TIME_REJ_REASON, SendingTime.FIELD).getMessage();
 
-
     private final List<StringField> logonTags;
 
     protected static final Logger LOG = LoggerFactory.getLogger(Session.class);
