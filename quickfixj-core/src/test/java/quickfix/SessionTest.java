@@ -3067,7 +3067,7 @@ public class SessionTest {
         when(mockLogFactory.create(sessionID)).thenReturn(mockLog);
 
         DataDictionaryProvider dataDictionaryProvider = mock(DataDictionaryProvider.class);
-        DataDictionary dataDictionary = new DataDictionary("../quickfixj-messages/quickfixj-messages-fix44/src/main/resources/FIX44.modified.xml");
+        DataDictionary dataDictionary = new DataDictionary("FIX44.modified.xml");
         when(dataDictionaryProvider.getSessionDataDictionary("FIX.4.4")).thenReturn(dataDictionary);
         when(dataDictionaryProvider.getApplicationDataDictionary(new ApplVerID("6"))).thenReturn(dataDictionary);
 

@@ -788,9 +788,7 @@ public class DataDictionary {
         }
     }
 
-    /**
-     * Check if message type is defined in spec.
-     **/
+    /** Check if message type is defined in spec. **/
     private void checkMsgType(String msgType) {
         if (!isMsgType(msgType)) {
             throw new FieldException(SessionRejectReason.INVALID_MSGTYPE, MsgType.FIELD);
@@ -918,9 +916,7 @@ public class DataDictionary {
         }
     }
 
-    /**
-     * Check if a message has all required fields.
-     **/
+    /** Check if a message has all required fields. **/
     void checkHasRequired(FieldMap header, FieldMap body, FieldMap trailer, String msgType,
                           boolean bodyOnly) {
 

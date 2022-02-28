@@ -386,7 +386,7 @@ public class Session implements Closeable {
     public static final String SETTING_ALLOW_POS_DUP_MESSAGES = "AllowPosDup";
 
     /**
-     * Option so that the session does not remove PossDupFlag (43) and OrigSendingTime (122) information when sending.
+     * If it is set to true, it will check required tags.
      */
     public static final String SETTING_CHECK_REQUIRED_TAGS = "CheckRequiredTags";
 
