@@ -2159,12 +2159,12 @@ public class SessionTest {
 		final boolean resetOnLogon = false;
 		final boolean validateSequenceNumbers = true;
 
-        Session session = new Session(new UnitTestApplication(), new MemoryStoreFactory(),
-                sessionID, null, null, null,
-                new DefaultMessageFactory(), 30, false, 30, UtcTimestampPrecision.MILLIS, resetOnLogon,
-                false, false, false, false, false, true, false, 1.5, null, validateSequenceNumbers,
-                new int[]{5}, false, false, false, false, true, false, true, false, null, true, 0,
-                false, false, true, new ArrayList<>(), Session.DEFAULT_HEARTBEAT_TIMEOUT_MULTIPLIER, false, true);
+		Session session = new Session(new UnitTestApplication(), new MemoryStoreFactory(),
+				sessionID, null, null, null,
+				new DefaultMessageFactory(), 30, false, 30, UtcTimestampPrecision.MILLIS, resetOnLogon,
+				false, false, false, false, false, true, false, 1.5, null, validateSequenceNumbers,
+				new int[]{5}, false, false, false, false, true, false, true, false, null, true, 0,
+				false, false, true, new ArrayList<>(), Session.DEFAULT_HEARTBEAT_TIMEOUT_MULTIPLIER, false, true);
 
 		Responder mockResponder = mock(Responder.class);
 		when(mockResponder.send(anyString())).thenReturn(true);
@@ -2207,12 +2207,12 @@ public class SessionTest {
 		final boolean resetOnLogon = false;
 		final boolean validateSequenceNumbers = true;
 
-        Session session = new Session(new UnitTestApplication(), new MemoryStoreFactory(),
-                sessionID, null, null, null,
-                new DefaultMessageFactory(), 30, false, 30, UtcTimestampPrecision.MILLIS, resetOnLogon,
-                false, false, false, false, false, true, false, 1.5, null, validateSequenceNumbers,
-                new int[]{5}, false, false, false, false, true, false, true, false, null, true, 0,
-                enableNextExpectedMsgSeqNum, false, true, new ArrayList<>(), Session.DEFAULT_HEARTBEAT_TIMEOUT_MULTIPLIER, false, true);
+		Session session = new Session(new UnitTestApplication(), new MemoryStoreFactory(),
+				sessionID, null, null, null,
+				new DefaultMessageFactory(), 30, false, 30, UtcTimestampPrecision.MILLIS, resetOnLogon,
+				false, false, false, false, false, true, false, 1.5, null, validateSequenceNumbers,
+				new int[]{5}, false, false, false, false, true, false, true, false, null, true, 0,
+				enableNextExpectedMsgSeqNum, false, true, new ArrayList<>(), Session.DEFAULT_HEARTBEAT_TIMEOUT_MULTIPLIER, false, true);
 
 		Responder mockResponder = mock(Responder.class);
 		when(mockResponder.send(anyString())).thenReturn(true);
