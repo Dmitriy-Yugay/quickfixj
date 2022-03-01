@@ -31,7 +31,7 @@ public class SessionFactoryTestSupport implements SessionFactory {
     }
 
     public static Session createSession(SessionID sessionID, Application application,
-                                                 boolean isInitiator) {
+                                        boolean isInitiator) {
         return new Builder().setSessionId(sessionID).setApplication(application).setIsInitiator(isInitiator)
                 .setCheckLatency(true).setMaxLatency(Session.DEFAULT_MAX_LATENCY)
                 .setCheckCompID(true)
@@ -39,7 +39,7 @@ public class SessionFactoryTestSupport implements SessionFactory {
     }
 
     public static Session createFileStoreSession(SessionID sessionID, Application application,
-                                                          boolean isInitiator, SessionSettings settings, SessionSchedule sessionSchedule) {
+                                                 boolean isInitiator, SessionSettings settings, SessionSchedule sessionSchedule) {
         return new Builder().setSessionId(sessionID).setApplication(application).setIsInitiator(isInitiator)
                 .setMessageStoreFactory(new FileStoreFactory(settings)).setSessionSchedule(sessionSchedule)
                 .setCheckLatency(true).setMaxLatency(Session.DEFAULT_MAX_LATENCY)

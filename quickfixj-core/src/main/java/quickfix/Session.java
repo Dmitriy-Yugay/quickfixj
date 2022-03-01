@@ -1196,7 +1196,7 @@ public class Session implements Closeable {
                     }
                 }
             } else {
-                // Re-throw as RuntimeError to keep close to the former behaviour
+                // Re-throw as quickfix.RuntimeError to keep close to the former behaviour
                 // and to have a clear notion of what is thrown out of this method.
                 // Throwing RuntimeError here means that the target seqnum is not incremented
                 // and a resend will be triggered by the next incoming message.
@@ -3051,8 +3051,7 @@ public class Session implements Closeable {
     public boolean isDuplicateTagsAllowed() {
         return duplicateTagsAllowed;
     }
-
-
+    
     /**
      * Closes session resources and unregisters session. This is for internal
      * use and should typically not be called by an user application.
