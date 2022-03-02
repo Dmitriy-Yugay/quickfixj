@@ -52,8 +52,8 @@ public class SessionID implements Serializable {
     private final String sessionQualifier;
 
     public SessionID(String beginString, String senderCompID, String senderSubID,
-                     String senderLocationID, String targetCompID, String targetSubID,
-                     String targetLocationID, String sessionQualifier) {
+            String senderLocationID, String targetCompID, String targetSubID,
+            String targetLocationID, String sessionQualifier) {
         this.beginString = value(beginString);
         this.senderCompID = value(senderCompID);
         this.senderSubID = value(senderSubID);
@@ -66,20 +66,20 @@ public class SessionID implements Serializable {
     }
 
     public SessionID(BeginString beginString, SenderCompID senderCompID, SenderSubID senderSubID,
-                     SenderLocationID senderLocationID, TargetCompID targetCompID, TargetSubID targetSubID,
-                     TargetLocationID targetLocationID, String qualifier) {
+            SenderLocationID senderLocationID, TargetCompID targetCompID, TargetSubID targetSubID,
+            TargetLocationID targetLocationID, String qualifier) {
         this(value(beginString), value(senderCompID), value(senderSubID), value(senderLocationID),
                 value(targetCompID), value(targetSubID), value(targetLocationID), value(qualifier));
     }
 
     public SessionID(String beginString, String senderCompID, String senderSubID,
-                     String targetCompID, String targetSubID) {
+            String targetCompID, String targetSubID) {
         this(beginString, senderCompID, senderSubID, NOT_SET, targetCompID, targetSubID, NOT_SET,
                 NOT_SET);
     }
 
     public SessionID(BeginString beginString, SenderCompID senderCompID, SenderSubID senderSubID,
-                     TargetCompID targetCompID, TargetSubID targetSubID) {
+            TargetCompID targetCompID, TargetSubID targetSubID) {
         this(value(beginString), value(senderCompID), value(senderSubID), value(targetCompID),
                 value(targetSubID));
     }
@@ -89,7 +89,7 @@ public class SessionID implements Serializable {
     }
 
     public SessionID(BeginString beginString, SenderCompID senderCompID, TargetCompID targetCompID,
-                     String qualifier) {
+            String qualifier) {
         this(value(beginString), value(senderCompID), value(targetCompID), value(qualifier));
     }
 
@@ -163,7 +163,7 @@ public class SessionID implements Serializable {
     @Override
     public boolean equals(Object object) {
         if (!(object instanceof SessionID)) {
-            return false;
+	    return false;
         }
         return toString().equals(object.toString());
     }
@@ -189,7 +189,7 @@ public class SessionID implements Serializable {
                 + (isSet(targetSubID) ? "/" + targetSubID : "")
                 + (isSet(targetLocationID) ? "/" + targetLocationID : "")
                 + (sessionQualifier != null && !sessionQualifier.equals(NOT_SET) ? ":"
-                + sessionQualifier : NOT_SET);
+                        + sessionQualifier : NOT_SET);
     }
 
     private boolean isSet(String value) {
