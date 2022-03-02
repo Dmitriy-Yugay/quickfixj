@@ -2225,7 +2225,7 @@ public class Session implements Closeable {
         }
 
         // Check for proper sequence reset response
-        if(!ignoreAbsenceOf141tag) {
+        if (!ignoreAbsenceOf141tag) {
             if (state.isResetSent() && !state.isResetReceived()) {
                 disconnect("Invalid sequence reset response in logon (missing 141=Y?): disconnecting", true);
             }
