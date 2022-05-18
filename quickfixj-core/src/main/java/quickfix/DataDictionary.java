@@ -41,6 +41,7 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -113,6 +114,8 @@ public class DataDictionary {
     private final IntegerStringMap<String> valueNames = new IntegerStringMap<>();
     private final StringIntegerMap<GroupInfo> groups = new StringIntegerMap<>();
     private final Map<String, Node> components = new HashMap<>();
+    private final Map<String, Set<Integer>> componentFields = new HashMap<>();
+    private final Map<String, Set<String>> msgTypeComponents = new HashMap<>();
     private int[] orderedFieldsArray;
 
     private DataDictionary() {
@@ -413,6 +416,61 @@ public class DataDictionary {
         return fields != null && fields.contains(field);
     }
 
+    private void addMsgTypeComponents(String msgType, String componentName) {
+        msgTypeComponents.computeIfAbsent(msgType, k -> new HashSet<>()).add(componentName);
+    }
+
+    /**
+     * Predicate for determining if a field is a component field
+     *
+     * @param msgType msgType of the message
+     * @param field the tag
+     * @return true if the tag is belongs to a component of the message with type msgType, false otherwise
+     */
+    public boolean isMsgTypeComponent(String msgType, int field) {
+        final Set<String> components = msgTypeComponents.get(msgType);
+        return components != null && components.stream()
+                .anyMatch(x -> componentFields.get(x)
+                        .contains(field));
+}
+
+    public String getComponentName(String msgType, int field) {
+        final Set<String> components = msgTypeComponents.get(msgType);
+
+        if (components == null) {
+            return null;
+        }
+        return components.stream()
+                .filter(x -> componentFields.get(x).contains(field))
+                .findFirst()
+                .orElse(null);
+    }
+
+    private void addComponentFields(String componentName, int field) {
+        componentFields.computeIfAbsent(componentName, k -> new HashSet<>()).add(field);
+    }
+
+    /**
+     * Predicate for determining if a field is a component field
+     *
+     * @param componentName name of the component
+     * @param field the tag
+     * @return true if field is a component field, false otherwise
+     */
+    public boolean isComponentField(String componentName, int field) {
+        final Set<Integer> fields = componentFields.get(componentName);
+        return fields != null && fields.contains(field);
+    }
+
+    public Set<Integer> getComponentFields(String componentName) {
+        return Collections.unmodifiableSet(componentFields.get(componentName));
+    }
+
+    public boolean isComponent(String msgType, String componentName) {
+        Set<String> components = msgTypeComponents.get(msgType);
+        return components != null && components.contains(componentName);
+    }
+
     /**
      * Predicate for determining if a header field is a required field
      *
@@ -646,6 +704,7 @@ public class DataDictionary {
         copyMap(valueNames, rhs.valueNames);
         copyGroups(groups, rhs.groups);
         copyMap(components, rhs.components);
+        copyMap(componentFields, rhs.componentFields);
 
         setCheckFieldsOutOfOrder(rhs.checkFieldsOutOfOrder);
         setCheckFieldsHaveValues(rhs.checkFieldsHaveValues);
@@ -1266,16 +1325,16 @@ public class DataDictionary {
             DataDictionary dd, boolean componentRequired) throws ConfigError {
         int firstField = 0;
 
-        String name = getAttribute(node, "name");
-        if (name == null) {
+        String componentName = getAttribute(node, "name");
+        if (componentName == null) {
             throw new ConfigError("No name given to component");
         }
 
-        final Node componentNode = components.get(name);
+        final Node componentNode = components.get(componentName);
         if (componentNode == null) {
-            throw new ConfigError("Component " + name + " not found");
+            throw new ConfigError("Component " + componentName + " not found");
         }
-
+        String name;
         final NodeList componentFieldNodes = componentNode.getChildNodes();
         for (int i = 0; i < componentFieldNodes.getLength(); i++) {
             final Node componentFieldNode = componentFieldNodes.item(i);
@@ -1299,6 +1358,7 @@ public class DataDictionary {
 
                 dd.addField(field);
                 dd.addMsgField(msgtype, field);
+                dd.addComponentFields(componentName, field);
             }
             if (componentFieldNode.getNodeName().equals("group")) {
                 final String required = getAttribute(componentFieldNode, "required");
@@ -1312,6 +1372,7 @@ public class DataDictionary {
                 addXMLComponentFields(document, componentFieldNode, msgtype, dd, isRequired);
             }
         }
+        dd.addMsgTypeComponents(msgtype, componentName);
         return firstField;
     }
 
