@@ -416,7 +416,7 @@ public class DataDictionary {
         return fields != null && fields.contains(field);
     }
 
-    private void addMsgTypeComponents(String msgType, String componentName) {
+    private void addMsgComponent(String msgType, String componentName) {
         msgTypeComponents.computeIfAbsent(msgType, k -> new HashSet<>()).add(componentName);
     }
 
@@ -427,26 +427,23 @@ public class DataDictionary {
      * @param field the tag
      * @return true if the tag is belongs to a component of the message with type msgType, false otherwise
      */
-    public boolean isMsgTypeComponent(String msgType, int field) {
-        final Set<String> components = msgTypeComponents.get(msgType);
-        return components != null && components.stream()
-                .anyMatch(x -> componentFields.get(x)
-                        .contains(field));
+    public boolean isMsgComponentField(String msgType, int field) {
+        return getMsgComponentName(msgType, field) != null;
 }
 
-    public String getComponentName(String msgType, int field) {
+    public String getMsgComponentName(String msgType, int field) {
         final Set<String> components = msgTypeComponents.get(msgType);
 
         if (components == null) {
             return null;
         }
         return components.stream()
-                .filter(x -> componentFields.get(x).contains(field))
+                .filter(x -> isComponentField(x, field))
                 .findFirst()
                 .orElse(null);
     }
 
-    private void addComponentFields(String componentName, int field) {
+    private void addComponentField(String componentName, int field) {
         componentFields.computeIfAbsent(componentName, k -> new HashSet<>()).add(field);
     }
 
@@ -466,7 +463,7 @@ public class DataDictionary {
         return Collections.unmodifiableSet(componentFields.get(componentName));
     }
 
-    public boolean isComponent(String msgType, String componentName) {
+    public boolean isMsgComponent(String msgType, String componentName) {
         Set<String> components = msgTypeComponents.get(msgType);
         return components != null && components.contains(componentName);
     }
@@ -1358,7 +1355,7 @@ public class DataDictionary {
 
                 dd.addField(field);
                 dd.addMsgField(msgtype, field);
-                dd.addComponentFields(componentName, field);
+                dd.addComponentField(componentName, field);
             }
             if (componentFieldNode.getNodeName().equals("group")) {
                 final String required = getAttribute(componentFieldNode, "required");
@@ -1372,7 +1369,7 @@ public class DataDictionary {
                 addXMLComponentFields(document, componentFieldNode, msgtype, dd, isRequired);
             }
         }
-        dd.addMsgTypeComponents(msgtype, componentName);
+        dd.addMsgComponent(msgtype, componentName);
         return firstField;
     }
 
