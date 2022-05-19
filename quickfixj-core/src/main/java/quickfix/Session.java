@@ -385,6 +385,11 @@ public class Session implements Closeable {
      */
     public static final String SETTING_ALLOW_POS_DUP_MESSAGES = "AllowPosDup";
 
+    /**
+     * Ignore the absence of ResetSeqNumFlag(141) tag in the received Logon(A) message
+     */
+    public static final String IGNORE_ABSENCE_OF_141_TAG = "IgnoreAbsenceOf141tag";
+
     private static final ConcurrentMap<SessionID, Session> sessions = new ConcurrentHashMap<>();
 
     private final Application application;
@@ -436,6 +441,7 @@ public class Session implements Closeable {
     private boolean enableLastMsgSeqNumProcessed = false;
     private boolean validateChecksum = true;
     private boolean allowPosDup = false;
+    private boolean ignoreAbsenceOf141tag = false;
 
     private int maxScheduledWriteRequests = 0;
 
@@ -477,7 +483,7 @@ public class Session implements Closeable {
              messageFactory, heartbeatInterval, true, DEFAULT_MAX_LATENCY, UtcTimestampPrecision.MILLIS, false, false,
              false, false, true, false, true, false, DEFAULT_TEST_REQUEST_DELAY_MULTIPLIER, null, true, new int[] {5},
              false, false, false, false, true, false, true, false, null, true, DEFAULT_RESEND_RANGE_CHUNK_SIZE, false,
-             false, false, new ArrayList<StringField>(), DEFAULT_HEARTBEAT_TIMEOUT_MULTIPLIER, false);
+             false, false, new ArrayList<StringField>(), DEFAULT_HEARTBEAT_TIMEOUT_MULTIPLIER, false, false);
     }
 
     Session(Application application, MessageStoreFactory messageStoreFactory, SessionID sessionID,
@@ -496,7 +502,7 @@ public class Session implements Closeable {
             boolean validateIncomingMessage, int resendRequestChunkSize,
             boolean enableNextExpectedMsgSeqNum, boolean enableLastMsgSeqNumProcessed,
             boolean validateChecksum, List<StringField> logonTags, double heartBeatTimeoutMultiplier,
-            boolean allowPossDup) {
+            boolean allowPossDup, boolean ignoreAbsenceOf141tag) {
         this.application = application;
         this.sessionID = sessionID;
         this.sessionSchedule = sessionSchedule;
@@ -532,6 +538,7 @@ public class Session implements Closeable {
         this.validateChecksum = validateChecksum;
         this.logonTags = logonTags;
         this.allowPosDup = allowPossDup;
+        this.ignoreAbsenceOf141tag = ignoreAbsenceOf141tag;
 
         final Log engineLog = (logFactory != null) ? logFactory.create(sessionID) : null;
         if (engineLog instanceof SessionStateListener) {
@@ -2218,8 +2225,10 @@ public class Session implements Closeable {
         }
 
         // Check for proper sequence reset response
-        if (state.isResetSent() && !state.isResetReceived()) {
-            disconnect("Received logon response before sending request", true);
+        if (!ignoreAbsenceOf141tag) {
+            if (state.isResetSent() && !state.isResetReceived()) {
+                disconnect("Invalid sequence reset response in logon (missing 141=Y?): disconnecting", true);
+            }
         }
 
         state.setResetSent(false);
