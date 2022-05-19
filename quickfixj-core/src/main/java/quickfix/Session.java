@@ -385,6 +385,28 @@ public class Session implements Closeable {
      */
     public static final String SETTING_ALLOW_POS_DUP_MESSAGES = "AllowPosDup";
 
+
+    /**
+     * Default is "Y".
+     * If set to N, messages which contain values not presented in the range will not be rejected.
+     */
+    public static final String SETTING_VALIDATE_FIELDS_OUT_OF_RANGE = "ValidateFieldsOutOfRange";
+
+    /**
+     * If it is set to true, it will check required tags.
+     */
+    public static final String SETTING_CHECK_REQUIRED_TAGS = "CheckRequiredTags";
+
+    /**
+     * if set no reject will be sent on incoming message with duplicate tags
+     */
+    public static final String SETTING_DUPLICATE_TAGS_ALLOWED = "DuplicateTagsAllowed";
+
+    /**
+     * Ignore the absence of ResetSeqNumFlag(141) tag in the received Logon(A) message
+     */
+    public static final String SETTING_IGNORE_ABSENCE_OF_141_TAG = "IgnoreAbsenceOf141tag";
+
     private static final ConcurrentMap<SessionID, Session> sessions = new ConcurrentHashMap<>();
 
     private final Application application;
@@ -436,6 +458,10 @@ public class Session implements Closeable {
     private boolean enableLastMsgSeqNumProcessed = false;
     private boolean validateChecksum = true;
     private boolean allowPosDup = false;
+    private boolean validateFieldsOutOfRange = true;
+    private boolean checkRequiredTags = true;
+    private boolean duplicateTagsAllowed = false;
+    private boolean ignoreAbsenceOf141tag = false;
 
     private int maxScheduledWriteRequests = 0;
 
@@ -477,7 +503,7 @@ public class Session implements Closeable {
              messageFactory, heartbeatInterval, true, DEFAULT_MAX_LATENCY, UtcTimestampPrecision.MILLIS, false, false,
              false, false, true, false, true, false, DEFAULT_TEST_REQUEST_DELAY_MULTIPLIER, null, true, new int[] {5},
              false, false, false, false, true, false, true, false, null, true, DEFAULT_RESEND_RANGE_CHUNK_SIZE, false,
-             false, false, new ArrayList<StringField>(), DEFAULT_HEARTBEAT_TIMEOUT_MULTIPLIER, false);
+             false, false, new ArrayList<StringField>(), DEFAULT_HEARTBEAT_TIMEOUT_MULTIPLIER, false, true, true, false, false);
     }
 
     Session(Application application, MessageStoreFactory messageStoreFactory, SessionID sessionID,
@@ -496,7 +522,8 @@ public class Session implements Closeable {
             boolean validateIncomingMessage, int resendRequestChunkSize,
             boolean enableNextExpectedMsgSeqNum, boolean enableLastMsgSeqNumProcessed,
             boolean validateChecksum, List<StringField> logonTags, double heartBeatTimeoutMultiplier,
-            boolean allowPossDup) {
+            boolean allowPossDup, boolean validateFieldsOutOfRange, boolean checkRequiredTags,
+            boolean duplicateTagsAllowed, boolean ignoreAbsenceOf141tag) {
         this.application = application;
         this.sessionID = sessionID;
         this.sessionSchedule = sessionSchedule;
@@ -532,6 +559,10 @@ public class Session implements Closeable {
         this.validateChecksum = validateChecksum;
         this.logonTags = logonTags;
         this.allowPosDup = allowPossDup;
+        this.validateFieldsOutOfRange = validateFieldsOutOfRange;
+        this.checkRequiredTags = checkRequiredTags;
+        this.duplicateTagsAllowed = duplicateTagsAllowed;
+        this.ignoreAbsenceOf141tag = ignoreAbsenceOf141tag;
 
         final Log engineLog = (logFactory != null) ? logFactory.create(sessionID) : null;
         if (engineLog instanceof SessionStateListener) {
@@ -1028,7 +1059,7 @@ public class Session implements Closeable {
                     DataDictionary.validate(message, sessionDataDictionary,
                             applicationDataDictionary);
                 } catch (final IncorrectTagValue e) {
-                    if (rejectInvalidMessage) {
+                    if (rejectInvalidMessage && validateFieldsOutOfRange) {
                         throw e;
                     } else {
                         getLog().onErrorEvent("Warn: incoming message with " + e + ": " + getMessageToLog(message));
@@ -1189,7 +1220,7 @@ public class Session implements Closeable {
                     }
                 }
             } else {
-                // Re-throw as quickfix.RuntimeError to keep close to the former behaviour
+                // Re-throw as RuntimeError to keep close to the former behaviour
                 // and to have a clear notion of what is thrown out of this method.
                 // Throwing RuntimeError here means that the target seqnum is not incremented
                 // and a resend will be triggered by the next incoming message.
@@ -2218,8 +2249,10 @@ public class Session implements Closeable {
         }
 
         // Check for proper sequence reset response
-        if (state.isResetSent() && !state.isResetReceived()) {
-            disconnect("Received logon response before sending request", true);
+        if(!ignoreAbsenceOf141tag) {
+            if (state.isResetSent() && !state.isResetReceived()) {
+                disconnect("Invalid sequence reset response in logon (missing 141=Y?): disconnecting", true);
+            }
         }
 
         state.setResetSent(false);
@@ -3041,6 +3074,18 @@ public class Session implements Closeable {
         this.allowPosDup = allowPosDup;
     }
 
+    public boolean isCheckRequiredTags() {
+        return checkRequiredTags;
+    }
+
+    public void setCheckRequiredTags(boolean checkRequiredTags) {
+        this.checkRequiredTags = checkRequiredTags;
+    }
+
+    public boolean isDuplicateTagsAllowed() {
+        return duplicateTagsAllowed;
+    }
+
     /**
      * Closes session resources and unregisters session. This is for internal
      * use and should typically not be called by an user application.
@@ -3087,4 +3132,11 @@ public class Session implements Closeable {
         stateListener.onRefresh(sessionID);
     }
 
+    public boolean isValidateFieldsOutOfRange() {
+        return validateFieldsOutOfRange;
+    }
+
+    public void setValidateFieldsOutOfRange(boolean validateFieldsOutOfRange) {
+        this.validateFieldsOutOfRange = validateFieldsOutOfRange;
+    }
 }

@@ -19,8 +19,19 @@ public class SessionFactoryTestSupport implements SessionFactory {
                 .build();
     }
 
+    public static Session createSession(SessionID sessionID, SessionSettings settings, Application application, boolean duplicateTagsAllowed) throws ConfigError {
+        return new Builder().setSessionId(sessionID)
+                .setCheckLatency(false)
+                .setResetOnLogon(true)
+                .setApplication(application)
+                .setMessageStoreFactory(new FileStoreFactory(settings))
+                .setCheckCompID(true)
+                .setDuplicateTagsAllowed(duplicateTagsAllowed)
+                .build();
+    }
+
     public static Session createSession(SessionID sessionID, Application application,
-                                        boolean isInitiator) {
+                                                 boolean isInitiator) {
         return new Builder().setSessionId(sessionID).setApplication(application).setIsInitiator(isInitiator)
                 .setCheckLatency(true).setMaxLatency(Session.DEFAULT_MAX_LATENCY)
                 .setCheckCompID(true)
@@ -28,7 +39,7 @@ public class SessionFactoryTestSupport implements SessionFactory {
     }
 
     public static Session createFileStoreSession(SessionID sessionID, Application application,
-                                                 boolean isInitiator, SessionSettings settings, SessionSchedule sessionSchedule) {
+                                                          boolean isInitiator, SessionSettings settings, SessionSchedule sessionSchedule) {
         return new Builder().setSessionId(sessionID).setApplication(application).setIsInitiator(isInitiator)
                 .setMessageStoreFactory(new FileStoreFactory(settings)).setSessionSchedule(sessionSchedule)
                 .setCheckLatency(true).setMaxLatency(Session.DEFAULT_MAX_LATENCY)
@@ -112,7 +123,11 @@ public class SessionFactoryTestSupport implements SessionFactory {
         private final boolean enableLastMsgSeqNumProcessed = false;
         private final boolean validateChecksum = true;
         private final boolean allowPosDup = false;
+        private final boolean validateFieldsOutOfRange = true;
+        private final boolean checkRequiredTags = false;
+        private boolean duplicateTagsAllowed = false;
         private List<StringField> logonTags = new ArrayList<>();
+        private boolean ignoreAbsenceOf141tag = false;
 
         public Session build() {
             return new Session(applicationSupplier.get(), messageStoreFactorySupplier.get(), sessionIDSupplier.get(),
@@ -124,7 +139,13 @@ public class SessionFactoryTestSupport implements SessionFactory {
                     resetOnError, disconnectOnError, disableHeartBeatCheck, false, rejectInvalidMessage,
                     rejectMessageOnUnhandledException, requiresOrigSendingTime, forceResendWhenCorruptedStore,
                     allowedRemoteAddresses, validateIncomingMessage, resendRequestChunkSize, enableNextExpectedMsgSeqNum,
-                    enableLastMsgSeqNumProcessed, validateChecksum, logonTags, heartBeatTimeoutMultiplier, allowPosDup);
+                    enableLastMsgSeqNumProcessed, validateChecksum, logonTags, heartBeatTimeoutMultiplier, allowPosDup,
+                    validateFieldsOutOfRange, checkRequiredTags, duplicateTagsAllowed, ignoreAbsenceOf141tag);
+        }
+
+        public Builder setIgnoreAbsenceOf141tag(boolean ignoreAbsenceOf141tag) {
+            this.ignoreAbsenceOf141tag = ignoreAbsenceOf141tag;
+            return this;
         }
 
         public Builder setBeginString(final String beginString) {
@@ -231,6 +252,11 @@ public class SessionFactoryTestSupport implements SessionFactory {
 
         public Builder setEnableNextExpectedMsgSeqNum(final boolean enableNextExpectedMsgSeqNum) {
             this.enableNextExpectedMsgSeqNum = enableNextExpectedMsgSeqNum;
+            return this;
+        }
+
+        public Builder setDuplicateTagsAllowed(boolean duplicateTagsAllowed){
+            this.duplicateTagsAllowed = duplicateTagsAllowed;
             return this;
         }
     }
