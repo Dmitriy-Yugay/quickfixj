@@ -36,10 +36,12 @@ import quickfix.field.converter.UtcDateOnlyConverter;
 import quickfix.field.converter.UtcTimeOnlyConverter;
 import quickfix.field.converter.UtcTimestampConverter;
 
+import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -47,8 +49,8 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.function.Supplier;
-import javax.xml.XMLConstants;
 
 import static quickfix.FileUtil.Location.CLASSLOADER_RESOURCE;
 import static quickfix.FileUtil.Location.CONTEXT_RESOURCE;
@@ -100,7 +102,7 @@ public class DataDictionary {
     private int minorVersion;
     private int extensionPack;
     private int servicePack;
-    private final Map<String, Set<Integer>> messageFields = new HashMap<>();
+    private final Map<String, TreeSet<Integer>> messageFields = new HashMap<>();
     private final Map<String, Set<Integer>> requiredFields = new HashMap<>();
     private final Set<String> messages = new HashSet<>();
     private final Map<String, String> messageCategory = new HashMap<>();
@@ -347,7 +349,7 @@ public class DataDictionary {
     }
 
     private void addMsgField(String msgType, int field) {
-        messageFields.computeIfAbsent(msgType, k -> new HashSet<>()).add(field);
+        messageFields.computeIfAbsent(msgType, k -> new TreeSet<>()).add(field);
     }
 
     /**
@@ -1226,6 +1228,12 @@ public class DataDictionary {
                 addXMLGroup(document, fieldNode, msgtype, this, required.equalsIgnoreCase("Y"));
             }
         }
+    }
+
+    public int[] getMsgTypeOrderedFields(String msgType) {
+        TreeSet<Integer> msgTypeFields = messageFields.get(msgType);
+        Integer[] arr = msgTypeFields.toArray(new Integer[msgTypeFields.size()]);
+        return Arrays.stream(arr).mapToInt(k -> k).toArray();
     }
 
     public int[] getOrderedFields() {
