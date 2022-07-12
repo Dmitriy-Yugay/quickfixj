@@ -102,7 +102,7 @@ public class DataDictionary {
     private int minorVersion;
     private int extensionPack;
     private int servicePack;
-    private final Map<String, LinkedHashSet<Integer>> messageFields = new HashMap<>();
+    private final Map<String, Set<Integer>> messageFields = new HashMap<>();
     private final Map<String, Set<Integer>> requiredFields = new HashMap<>();
     private final Set<String> messages = new HashSet<>();
     private final Map<String, String> messageCategory = new HashMap<>();
@@ -1230,10 +1230,8 @@ public class DataDictionary {
         }
     }
 
-    public int[] getMsgTypeOrderedFields(String msgType) {
-        LinkedHashSet<Integer> msgTypeFields = messageFields.get(msgType);
-        Integer[] arr = msgTypeFields.toArray(new Integer[msgTypeFields.size()]);
-        return Arrays.stream(arr).mapToInt(k -> k).toArray();
+    public int[] getMsgFieldOrder(String msgType) {
+        return messageFields.get(msgType).stream().mapToInt(k -> k).toArray();
     }
 
     public int[] getOrderedFields() {
