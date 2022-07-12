@@ -36,10 +36,12 @@ import quickfix.field.converter.UtcDateOnlyConverter;
 import quickfix.field.converter.UtcTimeOnlyConverter;
 import quickfix.field.converter.UtcTimestampConverter;
 
+import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -47,8 +49,8 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.function.Supplier;
-import javax.xml.XMLConstants;
 
 import static quickfix.FileUtil.Location.CLASSLOADER_RESOURCE;
 import static quickfix.FileUtil.Location.CONTEXT_RESOURCE;
@@ -347,7 +349,7 @@ public class DataDictionary {
     }
 
     private void addMsgField(String msgType, int field) {
-        messageFields.computeIfAbsent(msgType, k -> new HashSet<>()).add(field);
+        messageFields.computeIfAbsent(msgType, k -> new LinkedHashSet<>()).add(field);
     }
 
     /**
@@ -1226,6 +1228,10 @@ public class DataDictionary {
                 addXMLGroup(document, fieldNode, msgtype, this, required.equalsIgnoreCase("Y"));
             }
         }
+    }
+
+    public int[] getMsgFieldOrder(String msgType) {
+        return messageFields.get(msgType).stream().mapToInt(k -> k).toArray();
     }
 
     public int[] getOrderedFields() {

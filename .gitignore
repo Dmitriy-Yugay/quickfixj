@@ -11,12 +11,6 @@ target/
 *.iws
 # ignore NetBeans configuration
 nb-configuration.xml
-<<<<<<< HEAD
-<<<<<<< HEAD
 store
-=======
 /quickfixj-core/store/
->>>>>>> duplicateTagsAllowed
-=======
-store
->>>>>>> ignoreAbsenceOf141tag
+.DS_Store
