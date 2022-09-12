@@ -77,6 +77,7 @@ public class SessionFactoryTestSupport implements SessionFactory {
         private Supplier<SessionID> sessionIDSupplier = () -> new SessionID(beginString, senderCompID, targetCompID);
         private Supplier<Application> applicationSupplier = UnitTestApplication::new;
         private Supplier<MessageStoreFactory> messageStoreFactorySupplier = MemoryStoreFactory::new;
+        private Supplier<MessageQueueFactory> messageQueueFactorySupplier = InMemoryMessageQueueFactory::new;
         private Supplier<DataDictionaryProvider> dataDictionaryProviderSupplier = () -> null;
         private Supplier<SessionSchedule> sessionScheduleSupplier = () -> null;
         private Supplier<LogFactory> logFactorySupplier = () -> new ScreenLogFactory(true, true, true);
@@ -116,8 +117,8 @@ public class SessionFactoryTestSupport implements SessionFactory {
         private boolean ignoreAbsenceOf141tag = false;
 
         public Session build() {
-            return new Session(applicationSupplier.get(), messageStoreFactorySupplier.get(), sessionIDSupplier.get(),
-                    dataDictionaryProviderSupplier.get(), sessionScheduleSupplier.get(), logFactorySupplier.get(),
+            return new Session(applicationSupplier.get(), messageStoreFactorySupplier.get(), messageQueueFactorySupplier.get(),
+                    sessionIDSupplier.get(), dataDictionaryProviderSupplier.get(), sessionScheduleSupplier.get(), logFactorySupplier.get(),
                     messageFactorySupplier.get(), sessionHeartbeatIntervalSupplier.get(), checkLatency, maxLatency,
                     timestampPrecision, resetOnLogon, resetOnLogout, resetOnDisconnect, refreshMessageStoreAtLogon,
                     checkCompID, redundantResentRequestsAllowed, persistMessages, useClosedRangeForResend,
@@ -162,6 +163,11 @@ public class SessionFactoryTestSupport implements SessionFactory {
 
         public Builder setMessageStoreFactory(final MessageStoreFactory messageStoreFactory) {
             this.messageStoreFactorySupplier = () -> messageStoreFactory;
+            return this;
+        }
+
+        public Builder setMessageQueueFactory(final MessageQueueFactory messageQueueFactory) {
+            this.messageQueueFactorySupplier = () -> messageQueueFactory;
             return this;
         }
 
