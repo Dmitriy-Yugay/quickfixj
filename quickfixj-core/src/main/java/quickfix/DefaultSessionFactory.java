@@ -202,7 +202,7 @@ public class DefaultSessionFactory implements SessionFactory {
                     Session.SETTING_USE_CLOSED_RESEND_INTERVAL, false);
 
             final boolean ignoreAbsenceOf141tag = getSetting(settings, sessionID,
-                    Session.IGNORE_ABSENCE_OF_141_TAG, false);
+                    Session.SETTING_IGNORE_ABSENCE_OF_141_TAG, false);
 
             final int logonTimeout = getSetting(settings, sessionID, Session.SETTING_LOGON_TIMEOUT, 10);
             final int logoutTimeout = getSetting(settings, sessionID, Session.SETTING_LOGOUT_TIMEOUT, 2);

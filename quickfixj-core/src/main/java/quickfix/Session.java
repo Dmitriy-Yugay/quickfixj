@@ -388,7 +388,7 @@ public class Session implements Closeable {
     /**
      * Ignore the absence of ResetSeqNumFlag(141) tag in the received Logon(A) message
      */
-    public static final String IGNORE_ABSENCE_OF_141_TAG = "IgnoreAbsenceOf141tag";
+    public static final String SETTING_IGNORE_ABSENCE_OF_141_TAG = "IgnoreAbsenceOf141tag";
 
     private static final ConcurrentMap<SessionID, Session> sessions = new ConcurrentHashMap<>();
 
