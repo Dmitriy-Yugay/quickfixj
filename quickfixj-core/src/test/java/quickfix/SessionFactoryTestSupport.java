@@ -114,6 +114,7 @@ public class SessionFactoryTestSupport implements SessionFactory {
         private final boolean validateChecksum = true;
         private final boolean allowPosDup = false;
         private List<StringField> logonTags = new ArrayList<>();
+        private boolean ignoreAbsenceOf141tag = false;
 
         public Session build() {
             return new Session(applicationSupplier.get(), messageStoreFactorySupplier.get(), messageQueueFactorySupplier.get(),
@@ -125,7 +126,12 @@ public class SessionFactoryTestSupport implements SessionFactory {
                     resetOnError, disconnectOnError, disableHeartBeatCheck, false, rejectInvalidMessage,
                     rejectMessageOnUnhandledException, requiresOrigSendingTime, forceResendWhenCorruptedStore,
                     allowedRemoteAddresses, validateIncomingMessage, resendRequestChunkSize, enableNextExpectedMsgSeqNum,
-                    enableLastMsgSeqNumProcessed, validateChecksum, logonTags, heartBeatTimeoutMultiplier, allowPosDup);
+                    enableLastMsgSeqNumProcessed, validateChecksum, logonTags, heartBeatTimeoutMultiplier, allowPosDup, ignoreAbsenceOf141tag);
+        }
+
+        public Builder setIgnoreAbsenceOf141tag(boolean ignoreAbsenceOf141tag) {
+            this.ignoreAbsenceOf141tag = ignoreAbsenceOf141tag;
+            return this;
         }
 
         public Builder setBeginString(final String beginString) {
