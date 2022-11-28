@@ -158,7 +158,7 @@ public class MessageUtils {
 
         message = messageFactory.create(beginString, applVerID, msgType);
         message.parse(messageString, sessionDataDictionary, payloadDictionary, doValidation,
-                validateChecksum);
+                validateChecksum, session.isDuplicateTagsAllowed());
 
         return message;
     }

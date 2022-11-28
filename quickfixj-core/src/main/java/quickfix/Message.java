@@ -598,14 +598,30 @@ public class Message extends FieldMap {
     }
 
     void parse(String messageData, DataDictionary sessionDataDictionary,
-            DataDictionary applicationDataDictionary, boolean doValidation,
-            boolean validateChecksum) throws InvalidMessage {
+               DataDictionary applicationDataDictionary, boolean doValidation,
+               boolean validateChecksum) throws InvalidMessage {
         this.messageData = messageData;
+        parse(messageData, sessionDataDictionary, applicationDataDictionary, doValidation, validateChecksum, null);
+    }
+
+    void parse(String messageData, DataDictionary sessionDataDictionary,
+            DataDictionary applicationDataDictionary, boolean doValidation,
+            boolean validateChecksum, Boolean duplicateTagsAllowed) throws InvalidMessage {
+
+        this.messageData = messageData;
+        this.clear();
 
         try {
-            parseHeader(sessionDataDictionary, doValidation);
-            parseBody(applicationDataDictionary, doValidation);
-            parseTrailer(sessionDataDictionary);
+            if (duplicateTagsAllowed != null) {
+                parseHeader(sessionDataDictionary, doValidation, duplicateTagsAllowed);
+                parseBody(applicationDataDictionary, doValidation, duplicateTagsAllowed);
+                parseTrailer(sessionDataDictionary, duplicateTagsAllowed);
+            } else {
+                parseHeader(sessionDataDictionary, doValidation, true);
+                parseBody(applicationDataDictionary, doValidation, false);
+                parseTrailer(sessionDataDictionary, true);
+            }
+
             if (doValidation && validateChecksum) {
                 validateCheckSum(messageData);
             }
@@ -628,7 +644,7 @@ public class Message extends FieldMap {
         }
     }
 
-    private void parseHeader(DataDictionary dd, boolean doValidation) throws InvalidMessage {
+    private void parseHeader(DataDictionary dd, boolean doValidation, boolean duplicateTagsAllowed) throws InvalidMessage {
         if (doValidation) {
             final boolean validHeaderFieldOrder = isNextField(dd, header, BeginString.FIELD)
                     && isNextField(dd, header, BodyLength.FIELD)
@@ -642,10 +658,10 @@ public class Message extends FieldMap {
 
         StringField field = extractField(dd, header);
         while (field != null && isHeaderField(field, dd)) {
-            header.setField(field);
+            header.setField(field, duplicateTagsAllowed);
 
             if (dd != null && dd.isGroup(DataDictionary.HEADER_ID, field.getField())) {
-                parseGroup(DataDictionary.HEADER_ID, field, dd, dd, header, doValidation);
+                parseGroup(DataDictionary.HEADER_ID, field, dd, dd, header, doValidation, duplicateTagsAllowed);
             }
 
             field = extractField(dd, header);
@@ -670,7 +686,7 @@ public class Message extends FieldMap {
         }
     }
 
-    private void parseBody(DataDictionary dd, boolean doValidation) throws InvalidMessage {
+    private void parseBody(DataDictionary dd, boolean doValidation, boolean duplicateTagsAllowed) throws InvalidMessage {
         StringField field = extractField(dd, this);
         while (field != null) {
             if (isTrailerField(field.getField())) {
@@ -681,19 +697,19 @@ public class Message extends FieldMap {
             if (isHeaderField(field.getField())) {
                 // An acceptance test requires the sequence number to
                 // be available even if the related field is out of order
-                setField(header, field);
+                setField(header, field, duplicateTagsAllowed);
                 // Group case
                 if (dd != null && dd.isGroup(DataDictionary.HEADER_ID, field.getField())) {
-                    parseGroup(DataDictionary.HEADER_ID, field, dd, dd, header, doValidation);
+                    parseGroup(DataDictionary.HEADER_ID, field, dd, dd, header, doValidation, duplicateTagsAllowed);
                 }
                 if (doValidation && dd != null && dd.isCheckFieldsOutOfOrder())
                     throw new FieldException(SessionRejectReason.TAG_SPECIFIED_OUT_OF_REQUIRED_ORDER,
                         field.getTag());
             } else {
-                setField(this, field);
+                setField(this, field, duplicateTagsAllowed);
                 // Group case
                 if (dd != null && dd.isGroup(getMsgType(), field.getField())) {
-                    parseGroup(getMsgType(), field, dd, dd, this, doValidation);
+                    parseGroup(getMsgType(), field, dd, dd, this, doValidation, duplicateTagsAllowed);
                 }
             }
 
@@ -701,14 +717,14 @@ public class Message extends FieldMap {
         }
     }
 
-    private void setField(FieldMap fields, StringField field) {
-        if (fields.isSetField(field)) {
+    private void setField(FieldMap fields, StringField field, boolean duplicateTagsAllowed) {
+        if (fields.isSetField(field) && !duplicateTagsAllowed) {
             throw new FieldException(SessionRejectReason.TAG_APPEARS_MORE_THAN_ONCE, field.getTag());
         }
         fields.setField(field);
     }
 
-    private void parseGroup(String msgType, StringField field, DataDictionary dd, DataDictionary parentDD, FieldMap parent, boolean doValidation)
+    private void parseGroup(String msgType, StringField field, DataDictionary dd, DataDictionary parentDD, FieldMap parent, boolean doValidation, boolean duplicateTagsAllowed)
             throws InvalidMessage {
         final DataDictionary.GroupInfo rg = dd.getGroup(msgType, field.getField());
         final DataDictionary groupDataDictionary = rg.getDataDictionary();
@@ -736,15 +752,15 @@ public class Message extends FieldMap {
             if (tag == firstField) {
                 addGroupRefToParent(group, parent);
                 group = new Group(groupCountTag, firstField, groupDataDictionary.getOrderedFields());
-                group.setField(field);
+                group.setField(field, duplicateTagsAllowed);
                 previousOffset = -1;
                 // QFJ-742
                 if (groupDataDictionary.isGroup(msgType, tag)) {
-                    parseGroup(msgType, field, groupDataDictionary, parentDD, group, doValidation);
+                    parseGroup(msgType, field, groupDataDictionary, parentDD, group, doValidation, duplicateTagsAllowed);
                 }
             } else if (groupDataDictionary.isGroup(msgType, tag)) {
                 if (group != null) {
-                    parseGroup(msgType, field, groupDataDictionary, parentDD, group, doValidation);
+                    parseGroup(msgType, field, groupDataDictionary, parentDD, group, doValidation, duplicateTagsAllowed);
                 } else {
                     // QFJ-934: message should be rejected and not ignored when first field not found
                     throw newFieldExceptionMissingDelimiter(groupCountTag, firstField, tag);
@@ -756,7 +772,7 @@ public class Message extends FieldMap {
                         if (offset > -1) {
                             if (offset <= previousOffset) {
                                 // QFJ-792: add what we've already got and leave the rest to the validation (if enabled)
-                                group.setField(field);
+                                group.setField(field, duplicateTagsAllowed);
                                 addGroupRefToParent(group, parent);
                                 throw new FieldException(
                                         SessionRejectReason.REPEATING_GROUP_FIELDS_OUT_OF_ORDER, tag);
@@ -764,7 +780,7 @@ public class Message extends FieldMap {
                             previousOffset = offset;
                         }
                     }
-                    group.setField(field);
+                    group.setField(field, duplicateTagsAllowed);
                 } else {
                     throw newFieldExceptionMissingDelimiter(groupCountTag, firstField, tag);
                 }
@@ -816,14 +832,14 @@ public class Message extends FieldMap {
         return false;
     }
 
-    private void parseTrailer(DataDictionary dd) throws InvalidMessage {
+    private void parseTrailer(DataDictionary dd, boolean duplicateTagsAllowed) throws InvalidMessage {
         StringField field = extractField(dd, trailer);
         while (field != null) {
             if (!isTrailerField(field, dd)) {
                 throw new FieldException(SessionRejectReason.TAG_SPECIFIED_OUT_OF_REQUIRED_ORDER,
                         field.getTag());
             }
-            trailer.setField(field);
+            trailer.setField(field, duplicateTagsAllowed);
             field = extractField(dd, trailer);
         }
     }
